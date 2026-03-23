@@ -1,5 +1,8 @@
 # Lakehouse Pipeline
 
+[![Build](https://github.com/creitonmonteiro/bike-store-lakehouse-pipeline/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/creitonmonteiro/bike-store-lakehouse-pipeline/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
+
 Projeto de engenharia de dados ponta a ponta implementando **arquitetura medallion** sobre o Azure Data Lake Storage Gen2, orquestrado pelo Apache Airflow e executado com DuckDB + Delta Lake.
 
 ---
