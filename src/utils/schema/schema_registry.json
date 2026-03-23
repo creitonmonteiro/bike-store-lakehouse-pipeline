@@ -1,0 +1,174 @@
+{
+  "brands": {
+    "columns": {
+      "brand_id": "integer",
+      "brand_name": "varchar"
+    },
+    "primary_key": ["brand_id"],
+    "partition_by": ["_ingestion_timestamp"],
+    "data_quality": {
+      "brand_id": "IS NOT NULL"
+    }
+  },
+
+  "categories": {
+    "columns": {
+      "category_id": "integer",
+      "category_name": "varchar"
+    },
+    "primary_key": ["category_id"],
+    "partition_by": ["_ingestion_timestamp"],
+    "data_quality": {
+      "category_id": "IS NOT NULL"
+    }
+  },
+
+  "customers": {
+    "columns": {
+      "customer_id": "integer",
+      "first_name": "varchar",
+      "last_name": "varchar",
+      "phone": "varchar",
+      "email": "varchar",
+      "street": "varchar",
+      "city": "varchar",
+      "state": "varchar",
+      "zip_code": "varchar"
+    },
+    "primary_key": ["customer_id"],
+    "partition_by": ["_ingestion_timestamp"],
+    "data_quality": {
+      "customer_id": "IS NOT NULL"
+    }
+  },
+
+  "orders": {
+    "columns": {
+      "order_id": "integer",
+      "customer_id": "integer",
+      "order_status": "integer",
+      "order_date": "date",
+      "required_date": "date",
+      "shipped_date": "date",
+      "store_id": "integer",
+      "staff_id": "integer"
+    },
+    "primary_key": ["order_id", "customer_id", "store_id", "staff_id"],
+    "partition_by": ["_ingestion_timestamp"],
+    "data_quality": {
+      "order_status": "BETWEEN 0 AND 10",
+      "order_date": "IS NOT NULL",
+      "required_date": "IS NOT NULL",
+      "order_id": "IS NOT NULL",
+      "customer_id": "IS NOT NULL",
+      "store_id": "IS NOT NULL",
+      "staff_id": "IS NOT NULL"
+    },
+      "derived_columns": {
+        "days_to_ship": "DATEDIFF('day', order_date, CAST(NULLIF(shipped_date, 'NULL') AS DATE))",
+        "promised_days": "DATEDIFF('day', order_date, CAST(NULLIF(required_date, 'NULL') AS DATE))",
+        "is_shipped": "CASE WHEN shipped_date IS NOT NULL THEN 1 ELSE 0 END",
+        "is_late": "CASE WHEN CAST(NULLIF(shipped_date, 'NULL') AS DATE) > CAST(required_date AS DATE) THEN 1 ELSE 0 END",
+        "sla_met": "CASE WHEN CAST(NULLIF(shipped_date, 'NULL') AS DATE) <= CAST(required_date AS DATE) THEN 1 ELSE 0 END",
+        "days_open": "DATEDIFF('day', order_date, COALESCE(CAST(NULLIF(shipped_date, 'NULL') AS DATE), CURRENT_DATE))",
+        "delay_days": "CASE WHEN shipped_date IS NOT NULL THEN DATEDIFF('day', CAST(required_date AS DATE), CAST(NULLIF(shipped_date, 'NULL') AS DATE)) END",
+        "open_delay_days": "CASE WHEN shipped_date IS NULL THEN DATEDIFF('day', CAST(required_date AS DATE), CURRENT_DATE) ELSE 0 END"
+    }
+  },
+
+  "order_items": {
+    "columns": {
+      "order_id": "integer",
+      "item_id": "integer",
+      "product_id": "integer",
+      "quantity": "integer",
+      "list_price": "double",
+      "discount": "double"
+    },
+    "primary_key": ["order_id", "item_id", "product_id"],
+    "partition_by": ["_ingestion_timestamp"],
+    "data_quality": {
+      "quantity": "> 0",
+      "list_price": ">= 0",
+      "discount": "BETWEEN 0 AND 1",
+      "order_id": "IS NOT NULL",
+      "item_id": "IS NOT NULL",
+      "product_id": "IS NOT NULL"
+    },
+    "derived_columns": {
+      "gross_amount": "quantity * list_price",
+      "net_amount": "quantity * list_price * (1 - discount)"
+    }
+  },
+
+  "products": {
+    "columns": {
+      "product_id": "integer",
+      "brand_id": "integer",
+      "category_id": "integer",
+      "product_name": "varchar",
+      "model_year": "integer",
+      "list_price": "double"
+    },
+    "primary_key": ["product_id", "brand_id", "category_id"],
+    "partition_by": ["_ingestion_timestamp"],
+    "data_quality": {
+      "list_price": ">= 0",
+      "product_id": "IS NOT NULL",
+      "brand_id": "IS NOT NULL",
+      "category_id": "IS NOT NULL"
+    }
+  },
+
+  "staffs": {
+    "columns": {
+      "staff_id": "integer",
+      "store_id": "integer",
+      "manager_id": "integer",
+      "first_name": "varchar",
+      "last_name": "varchar",
+      "phone": "varchar",
+      "email": "varchar",
+      "active": "integer"
+    },
+    "primary_key": ["staff_id", "store_id", "manager_id"],
+    "partition_by": ["_ingestion_timestamp"],
+    "data_quality": {
+      "staff_id": "IS NOT NULL",
+      "store_id": "IS NOT NULL"
+    }
+  },
+
+  "stocks": {
+    "columns": {
+      "store_id": "integer",
+      "product_id": "integer",
+      "quantity": "integer"
+    },
+    "primary_key": ["store_id", "product_id"],
+    "partition_by": ["_ingestion_timestamp"],
+    "data_quality": {
+      "quantity": ">= 0",
+      "store_id": "IS NOT NULL",
+      "product_id": "IS NOT NULL"
+    }
+  },
+
+  "stores": {
+    "columns": {
+      "store_id": "integer",
+      "store_name": "varchar",
+      "phone": "varchar",
+      "email": "varchar",
+      "street": "varchar",
+      "city": "varchar",
+      "state": "varchar",
+      "zip_code": "varchar"
+    },
+    "primary_key": ["store_id"],
+    "partition_by": ["_ingestion_timestamp"],
+    "data_quality": {
+      "store_id": "IS NOT NULL"
+    }
+  }
+}
